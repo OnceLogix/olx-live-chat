@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+  <head>
+    <title>OLX Live Chat - Socket.io</title>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <link href="./chat.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-5">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <span class="glyphicon glyphicon-comment"></span> OLX LIVE Chat
+                    </div>
+                    <div class="olx-chat-body" id="chat-body">
+                        <ul class="chat" id="messages">
+                        </ul>
+                    </div>
+                    <div class="panel-footer">
+                      <div class="input-group">
+                        <input id="userName" type="text" class="form-control input" placeholder="Enter your username" />
+                      </div>
+                        <div class="input-group">
+                            <input id="messageInput" type="text" class="form-control input" placeholder="Type your message here..." />
+                            <span class="input-group-btn">
+                                <button class="btn btn-warning btn-sm" id="btn-chat">Send</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      //SOCKET.IO CODE
+      $(function () {
+        var socket = io();
+        var imgColor = Math.random().toString(16).slice(2, 8).toUpperCase();
+
+        //Send message button click function
+        $('#btn-chat').click(function(){
+          if($('#messageInput') && $('#messageInput').val()){
+            var msgObj = {user:$('#userName').val(), message:$('#messageInput').val(), userColor:imgColor};
+            socket.emit('chat message', msgObj);
+            $('#messageInput').val('');
+            return false;
+          }
+        });
+
+        //On new chat message function
+        socket.on('chat message', function(msgObj){
+          var msgDirection = 'left';
+          var msgNameDirection = '';
+          var msgRightFix = '';
+          var msgImgColor = imgColor;
+
+          if(msgObj.user == $('#userName').val()){
+            msgDirection = 'right';
+            msgNameDirection = 'pull-right';
+            msgRightFix = '<br>';
+            msgImgColor = msgObj.userColor;
+          }
+
+          var newMsgText = '<span class="chat-img pull-' + msgDirection + '"><img src="http://placehold.it/50/'+msgObj.userColor+'/fff&text='+ msgObj.user.substring(0,1) + '" alt="User Avatar" class="img-circle" /></span><div class="chat-body clearfix"><div class="header"><strong class="' + msgNameDirection + ' primary-font">' + msgObj.user + '</strong> </div>' + msgRightFix + '<p class="' + msgDirection + '">' + msgObj.message + '</p></div></li>';
+          $('#messages').append($('<li class="' + msgDirection + ' clearfix">').html(newMsgText));
+          $('#chat-body').animate({scrollTop: $("#messages").prop("scrollHeight") },'slow');
+        });
+      });
+    </script>
+  </body>
+</html>
