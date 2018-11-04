@@ -46,13 +46,18 @@
 }
 .inputname
 {
-  width: 50%;
+  width: 100%;
 }
 
 .olx-chat-body
 {
     overflow-y: scroll;
     height: 250px;
+}
+
+.olx-feedback
+{
+    margin-left: 10px;
 }
 
 ::-webkit-scrollbar-track

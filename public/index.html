@@ -13,22 +13,24 @@
             <div class="col-md-5">
                 <div class="panel panel-primary">
                     <div class="panel-heading">
-                        <span class="glyphicon glyphicon-comment"></span> OLX LIVE Chat
+                        <span class="glyphicon glyphicon-comment"></span> OLX LIVE Chat <!--<span id="feedback">HEY</span>-->
                     </div>
                     <div class="olx-chat-body" id="chat-body">
                         <ul class="chat" id="messages">
                         </ul>
+                        <span class="olx-feedback" id="feedback"></span>
                     </div>
                     <div class="panel-footer">
-                      <div class="input-group">
+                      <div class="inputname">
                         <input id="userName" type="text" class="form-control input" placeholder="Enter your username" />
                       </div>
-                        <div class="input-group">
-                            <input id="messageInput" type="text" class="form-control input" placeholder="Type your message here..." />
-                            <span class="input-group-btn">
-                                <button class="btn btn-warning btn-sm" id="btn-chat">Send</button>
-                            </span>
-                        </div>
+                      <div class="inputname">
+                          <input id="messageInput" type="text" class="form-control input" placeholder="Type your message here..." />
+                      </div>
+                      <div>
+                          <button class="btn btn-warning btn-lg btn-block" id="btn-chat">Send</button>
+                      </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -40,14 +42,31 @@
       $(function () {
         var socket = io();
         var imgColor = Math.random().toString(16).slice(2, 8).toUpperCase();
+        var timeout;
+
+        //Timeout and function for the now typing status
+        function timeoutFunction() {
+          socket.emit("typing", false);
+        }
+
+        $('#messageInput').keyup(function(){
+          if($('#userName') && $('#userName').val()){
+           socket.emit('typing', $('#userName').val());
+           clearTimeout(timeout)
+           timeout = setTimeout(timeoutFunction, 2000)
+          }
+        })
 
         //Send message button click function
         $('#btn-chat').click(function(){
-          if($('#messageInput') && $('#messageInput').val()){
-            var msgObj = {user:$('#userName').val(), message:$('#messageInput').val(), userColor:imgColor};
-            socket.emit('chat message', msgObj);
-            $('#messageInput').val('');
-            return false;
+          if($('#userName') && $('#userName').val()){
+            if($('#messageInput') && $('#messageInput').val()){
+              var msgObj = {user:$('#userName').val(), message:$('#messageInput').val(), userColor:imgColor};
+              socket.emit("typing", false);
+              socket.emit('chat message', msgObj);
+              $('#messageInput').val('');
+              return false;
+            }
           }
         });
 
@@ -69,6 +88,18 @@
           $('#messages').append($('<li class="' + msgDirection + ' clearfix">').html(newMsgText));
           $('#chat-body').animate({scrollTop: $("#messages").prop("scrollHeight") },'slow');
         });
+
+        //On someone is typing function
+        socket.on('typing', function(data){
+            if (data) {
+              if(data != $('#userName').val()){
+                $('#feedback').html('<em>' + data + ' is typing...</em>');
+              }
+            } else {
+              $('#feedback').html('');
+            }
+        });
+
       });
     </script>
   </body>
